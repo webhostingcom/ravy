@@ -1,0 +1,141 @@
+<?xml version="1.0" encoding="utf-8"?>
+<manifest xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <!--
+        Every permission below maps to a REAL Android capability that Ravy
+        actually uses. There is no "full access" permission on Android —
+        each capability (mic, camera/flashlight, contacts, etc.) is granted
+        separately by the user and can be revoked at any time in Settings.
+    -->
+    <uses-permission android:name="android.permission.RECORD_AUDIO" />
+    <uses-permission android:name="android.permission.CAMERA" />
+    <uses-permission android:name="android.permission.INTERNET" />
+    <uses-permission android:name="android.permission.QUERY_ALL_PACKAGES" />
+
+    <!-- Contacts: search contacts, resolve a name to a number -->
+    <uses-permission android:name="android.permission.READ_CONTACTS" />
+
+    <!-- SMS: read counts/senders, and send only after in-app confirmation -->
+    <uses-permission android:name="android.permission.READ_SMS" />
+    <uses-permission android:name="android.permission.SEND_SMS" />
+
+    <!-- Calendar: read events, create events -->
+    <uses-permission android:name="android.permission.READ_CALENDAR" />
+    <uses-permission android:name="android.permission.WRITE_CALENDAR" />
+
+    <!-- Phone calls: dial after confirmation -->
+    <uses-permission android:name="android.permission.CALL_PHONE" />
+
+    <!-- Location: "near me" style requests -->
+    <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
+    <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" />
+
+    <!-- Files/media: find, list, open files -->
+    <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE"
+        android:maxSdkVersion="32" />
+    <uses-permission android:name="android.permission.READ_MEDIA_IMAGES" />
+    <uses-permission android:name="android.permission.READ_MEDIA_VIDEO" />
+    <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
+
+    <!-- Always-on "Hey Ravy" listening (real foreground service, uses more battery) -->
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE_MICROPHONE" />
+
+    <!-- The small Siri-style popup orb, drawn over whatever app you're in -->
+    <uses-permission android:name="android.permission.SYSTEM_ALERT_WINDOW" />
+
+    <!-- Choosing which SIM to dial on a dual-SIM phone -->
+    <uses-permission android:name="android.permission.READ_PHONE_STATE" />
+    <uses-permission android:name="android.permission.READ_CALL_LOG" />
+    <uses-permission android:name="android.permission.REQUEST_IGNORE_BATTERY_OPTIMIZATIONS" />
+
+    <!-- Scheduled reminders/reports: real alarms, not a cellular phone call -->
+    <uses-permission android:name="android.permission.SCHEDULE_EXACT_ALARM" />
+    <uses-permission android:name="android.permission.USE_EXACT_ALARM" />
+    <uses-permission android:name="android.permission.VIBRATE" />
+    <uses-permission android:name="android.permission.USE_FULL_SCREEN_INTENT" />
+
+    <application
+        android:name=".RavyApplication"
+        android:allowBackup="true"
+        android:label="Ravy"
+        android:icon="@mipmap/ic_launcher"
+        android:theme="@style/Theme.Ravy"
+        android:supportsRtl="true">
+
+        <activity
+            android:name=".MainActivity"
+            android:exported="true"
+            android:theme="@style/Theme.Ravy">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+        </activity>
+
+        <!--
+            Real AccessibilityService used to read the currently visible
+            screen aloud for a blind user — its actual intended purpose.
+            It ships with an implementation (accessibility/RavyAccessibilityService.kt)
+            but Android will NOT let Ravy turn this on for itself. The user
+            must explicitly enable "Ravy" under
+            Settings > Accessibility > Installed apps. MainActivity provides
+            a button that opens that settings screen directly.
+        -->
+        <service
+            android:name=".accessibility.RavyAccessibilityService"
+            android:permission="android.permission.BIND_ACCESSIBILITY_SERVICE"
+            android:exported="false">
+            <intent-filter>
+                <action android:name="android.accessibilityservice.AccessibilityService" />
+            </intent-filter>
+            <meta-data
+                android:name="android.accessibilityservice"
+                android:resource="@xml/accessibility_service_config" />
+        </service>
+
+        <!--
+            Real NotificationListenerService used to summarize incoming
+            notifications (app, title, text) so a blind user can ask
+            "what notifications came in?" without opening the shade.
+            Same rule: user must enable it manually under
+            Settings > Apps > Special access > Notification access.
+        -->
+        <service
+            android:name=".notifications.RavyNotificationListener"
+            android:permission="android.permission.BIND_NOTIFICATION_LISTENER_SERVICE"
+            android:exported="false">
+            <intent-filter>
+                <action android:name="android.service.notification.NotificationListenerService" />
+            </intent-filter>
+        </service>
+
+        <!-- Always-on "Hey Ravy" wake-word loop. Started by a chip in MainActivity. -->
+        <service
+            android:name=".listening.RavyListenerService"
+            android:exported="false"
+            android:foregroundServiceType="microphone" />
+
+        <!-- The popup orb + conversation session, launched by RavyListenerService
+             the moment "Hey Ravy" is heard. -->
+        <service
+            android:name=".overlay.RavyOverlayService"
+            android:exported="false" />
+
+        <!--
+            Fires at a scheduled reminder/report time (real AlarmManager alarm)
+            and posts the full-screen "incoming call"-style alert. This is NOT
+            a cellular phone call — Ravy has no SIM or phone number of its own.
+        -->
+        <receiver
+            android:name=".reminders.RavyAlarmReceiver"
+            android:exported="false" />
+
+        <!-- The full-screen Answer/Dismiss alert itself. -->
+        <activity
+            android:name=".reminders.IncomingRavyCallActivity"
+            android:exported="false"
+            android:theme="@style/Theme.Ravy" />
+
+    </application>
+</manifest>

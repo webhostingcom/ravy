@@ -1,0 +1,6 @@
+<resources>
+    <style name="Theme.Ravy" parent="android:Theme.Material.NoActionBar">
+        <item name="android:statusBarColor">#03060A</item>
+        <item name="android:windowBackground">#03060A</item>
+    </style>
+</resources>

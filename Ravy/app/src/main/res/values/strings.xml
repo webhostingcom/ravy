@@ -1,0 +1,4 @@
+<resources>
+    <string name="app_name">Ravy</string>
+    <string name="accessibility_service_description">Lets Ravy read the current screen aloud on request, for blind and low-vision users.</string>
+</resources>
